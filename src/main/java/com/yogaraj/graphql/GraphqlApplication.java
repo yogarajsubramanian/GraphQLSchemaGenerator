@@ -16,7 +16,7 @@ public class GraphqlApplication {
 	@Bean
 	GraphQlSchemaGenerator mGraphQlSchema() throws ClassNotFoundException, SecurityException, NullPointerException {
 		GraphQlSchemaGenerator mQlSchema = new GraphQlSchemaGenerator();
-		mQlSchema.generateSchema();
+		mQlSchema.generateSchema("com.yogaraj.graphql.dto");
 		return mQlSchema;
 	}
 }

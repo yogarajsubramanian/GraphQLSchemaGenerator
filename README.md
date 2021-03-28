@@ -28,6 +28,18 @@ Below are the annotation which are employed in schema generation process.
     public  String  url;
     }
 
+**Sample Output**
+
+     type doc {
+    	title: String
+    	url: String!
+    }
+    
+     enum docType {
+    	media
+    	document
+    }
+
  **Supported GraphQL Features**
 
 1. Fields 
