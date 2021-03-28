@@ -12,7 +12,7 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.stereotype.Component;
 
 /**
- * GraphQLSchemaConvertor ligh-weigth java component which converts Java DTO
+ * GraphQLSchemaGenerator ligh-weigth java component which converts Java DTO
  * classes into graphQL schema. This class uses
  * {@link ClassPathScanningCandidateComponentProvider} to find the components
  * which are involved in schema generation process.
@@ -75,35 +75,37 @@ public class GraphQlSchemaGenerator {
         provider.addIncludeFilter(new AnnotationTypeFilter(GraphQLSchema.class));
 
         // get list of classes which are annotated by {@link GraphQLSchema}
-        for (BeanDefinition definition : provider.findCandidateComponents("com.yogaraj.graphql.dto")) {
+        for (String sPackage : packages) {
+            for (BeanDefinition definition : provider.findCandidateComponents(sPackage)) {
 
-            Class<?> graphQLClass = Class.forName(definition.getBeanClassName());
-            GraphQLSchema sGraphQLSchema = graphQLClass.getAnnotation(GraphQLSchema.class);
-            if (sGraphQLSchema == null) {
-                this.printLogMessage("IGNORING: Class " + graphQLClass.getName() + " should be annotated");
-                continue;
+                Class<?> graphQLClass = Class.forName(definition.getBeanClassName());
+                GraphQLSchema sGraphQLSchema = graphQLClass.getAnnotation(GraphQLSchema.class);
+                if (sGraphQLSchema == null) {
+                    this.printLogMessage("IGNORING: Class " + graphQLClass.getName() + " should be annotated");
+                    continue;
+                }
+
+                StringBuilder schemaBuilder = new StringBuilder();
+
+                this.addSpecialCharacters(schemaBuilder, "new-line");
+                // schema type
+                this.addSchemaType(sGraphQLSchema, schemaBuilder);
+
+                // operation name
+                this.addOperationName(sGraphQLSchema, schemaBuilder);
+                // schema implementation
+                this.addImplementation(sGraphQLSchema, schemaBuilder);
+
+                this.addSpecialCharacters(schemaBuilder, "delimiter-start");
+
+                this.addSchemaFields(schemaBuilder, graphQLClass, sGraphQLSchema);
+
+                this.addSpecialCharacters(schemaBuilder, "delimiter-end");
+
+                this.addSpecialCharacters(schemaBuilder, "new-line");
+
+                this.appendSchema(schemaBuilder.toString());
             }
-
-            StringBuilder schemaBuilder = new StringBuilder();
-
-            this.addSpecialCharacters(schemaBuilder, "new-line");
-            // schema type
-            this.addSchemaType(sGraphQLSchema, schemaBuilder);
-
-            // operation name
-            this.addOperationName(sGraphQLSchema, schemaBuilder);
-            // schema implementation
-            this.addImplementation(sGraphQLSchema, schemaBuilder);
-
-            this.addSpecialCharacters(schemaBuilder, "delimiter-start");
-
-            this.addSchemaFields(schemaBuilder, graphQLClass, sGraphQLSchema);
-
-            this.addSpecialCharacters(schemaBuilder, "delimiter-end");
-
-            this.addSpecialCharacters(schemaBuilder, "new-line");
-
-            this.appendSchema(schemaBuilder.toString());
         }
 
         this.printLogMessage("END: GraphQL schema generation ");
